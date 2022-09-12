@@ -1,5 +1,5 @@
-# Hololens2 Precision Tool
-Tool for Hololens2 to measure handtracking precision, made with Unity 2020.3.30f1. 2022 Internship, LIVE-ÉTS Montréal
+# Hololens2 Accuracy Tool
+Tool for Hololens2 to measure handtracking accuracy, made with Unity 2020.3.30f1. 2022 Internship, LIVE-ÉTS Montréal
 
 
 • This project conducted at ÉTS Montréal is about evaluating the accuracy of the augmented reality helmet “HoloLens2” from Microsoft in terms of hand position detection, for a potential use of augmented reality and HoloLens2 in the medical field and in cardiology.
