@@ -7,30 +7,27 @@ using UnityEngine.UI;
 using TMPro;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using Microsoft;
+using Microsoft.MixedReality.Toolkit;
 using Microsoft.MixedReality.Toolkit.Input;
 
 /// <summary>
-/// Class <c>Coordinates</c> gathers Thumb and Index coordinates data (Position + Rotation) on both hands.
+/// Class <c>Coordinates</c> gathers the object's coordinates data (Position + Rotation).
 /// </summary>
 public class Coordinates : MonoBehaviour
 {
-    public MixedRealityPose pose;
-    private TextMeshPro textIndex;
-    private TextMeshPro textThumb;
+    private TextMeshPro textMarker;
 
-    [SerializeField] private GameObject slateIndex;
-    [SerializeField] private GameObject slateThumb;
+    [SerializeField] private GameObject slateMarker;
     [SerializeField] private GameObject StartButton;
     [SerializeField] private GameObject EndButton;
 
-    private string posIndex;
-    private string posThumb;
+    private string posMarker;
+    private string posTip;
 
     private Matrix4x4 originTransformMatrix;
 
     private CoordCSV forCsv;
-    private List<CoordCSV> leftHandrecords;
-    private List<CoordCSV> rightHandrecords;
+    private List<CoordCSV> needleRecords;
 
     private bool isRecording;
     private double startTime;
@@ -42,24 +39,22 @@ public class Coordinates : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        textIndex = slateIndex.GetComponent<TextMeshPro>();
-        textThumb = slateThumb.GetComponent<TextMeshPro>();
+        textMarker = slateMarker.GetComponent<TextMeshPro>();
 
-        posIndex = "Index :\n";
-        posThumb = "Pouce :\n";
+        posMarker = "Maqueur :\n";
 
         originTransformMatrix=Matrix4x4.identity;
 
         isRecording = false;
 
-        folderName = "CSV Export";
+        folderName = "ObjectCSV Export";
     }
 
     // Update is called once per frame
     /// <summary>
     /// Checks if another coordinates system was created. If so, takes it as the origin.
     /// Coordinates are calculated using transition Matrix. The Z axis has to be inverted when using a QR code Coordinates System.
-    /// Then, for each active finger (Thumb or Index) of each hand, displays their position and rotation. If recording for csv, creates a new <c>CoordCSV</c> to save this data.
+    /// Then, displays the position and rotation of the gameObject corresponding to the real object. If recording for csv, creates a new <c>CoordCSV</c> to save this data.
     /// </summary>
     void Update()
     {
@@ -71,112 +66,37 @@ public class Coordinates : MonoBehaviour
             test.GetComponent<TextMeshPro>().SetText("F: " + origintest.forward + "\n" + "Up: " + origintest.up + "\n" + "R: " + origintest.right + "\n" + origintest.position);
         }
 
-        posIndex = "Index :\n";
-        posThumb = "Pouce :\n";
+        posMarker = "Maqueur :\n";
+        posTip = "Pointe :\n";
 
-        if (HandJointUtils.TryGetJointPose(TrackedHandJoint.IndexTip, Handedness.Right, out pose))          //Index tip, right hand
+        if (!(GameObject.FindGameObjectWithTag("Marker") is null))          
         {
             Vector3 relPos;
-            Vector4 worldPos = new Vector4(pose.Position.x, pose.Position.y, pose.Position.z, 1.0f);
+            Vector3 pose = GameObject.FindGameObjectWithTag("Marker").transform.position;
+            Quaternion rot = GameObject.FindGameObjectWithTag("Marker").transform.rotation;
+            Vector4 worldPos = new Vector4(pose.x, pose.y, pose.z, 1.0f);
             if (!newOriginExists)
             {
-                relPos = pose.Position;
+                relPos = pose;
             }
             else
             {
                 relPos =  originTransformMatrix * worldPos;
                 relPos.z = -relPos.z;
             }
-            relPos *= 1000.0f; //Converting the data from meter to millimeter
-
-            if (isRecording)
-            {
-                CoordCSV rightIndex = new CoordCSV("Index", RelativeTime(), relPos.ToString(), pose.Rotation.ToString());
-                forCsv.SaveRecord(rightHandrecords, rightIndex);
-            }
-
-            posIndex += "Main droite\n";
-            posIndex = posIndex + "Position : " + relPos + "\n";
-            posIndex = posIndex + "Rotation : " + pose.Rotation + "\n";
-        }
-        if (HandJointUtils.TryGetJointPose(TrackedHandJoint.IndexTip, Handedness.Left, out pose))          //Index tip, left hand
-        {
-            Vector3 relPos;
-            Vector4 worldPos = new Vector4(pose.Position.x, pose.Position.y, pose.Position.z, 1.0f);
-            if (!newOriginExists)
-            {
-                relPos = pose.Position;
-            }
-            else
-            {
-                relPos = originTransformMatrix * worldPos;
-                relPos.z = -relPos.z;
-            }
             relPos *= 1000.0f;
 
             if (isRecording)
             {
-                CoordCSV leftIndex = new CoordCSV("Index", RelativeTime(), relPos.ToString(), pose.Rotation.ToString());
-                forCsv.SaveRecord(leftHandrecords, leftIndex);
+                CoordCSV marker = new CoordCSV("Marker", RelativeTime(), relPos.ToString(), rot.ToString());
+                forCsv.SaveRecord(needleRecords, marker);
             }
 
-            posIndex += "\nMain gauche\n";
-            posIndex = posIndex + "Position : " + relPos + "\n";
-            posIndex = posIndex + "Rotation : " + pose.Rotation + "\n";
+            posMarker = posMarker + "Position : " + relPos + "\n";
+            posMarker = posMarker + "Rotation : " + rot + "\n";
         }
-        if (HandJointUtils.TryGetJointPose(TrackedHandJoint.ThumbTip, Handedness.Right, out pose))          //Thumb tip, right hand
-        {
-            Vector3 relPos;
-            Vector4 worldPos = new Vector4(pose.Position.x, pose.Position.y, pose.Position.z, 1.0f);
-            if (!newOriginExists)
-            {
-                relPos = pose.Position;
-            }
-            else
-            {
-                relPos = originTransformMatrix * worldPos;
-                relPos.z = -relPos.z;
-            }
-            relPos *= 1000.0f;
-
-            if (isRecording)
-            {
-                CoordCSV rightThumb = new CoordCSV("Thumb", RelativeTime(), relPos.ToString(), pose.Rotation.ToString());
-                forCsv.SaveRecord(rightHandrecords, rightThumb);
-            }
-
-            posThumb += "Main droite\n";
-            posThumb = posThumb + "Position : " + relPos + "\n";
-            posThumb = posThumb + "Rotation : " + pose.Rotation + "\n";
-        }
-        if (HandJointUtils.TryGetJointPose(TrackedHandJoint.ThumbTip, Handedness.Left, out pose))          //Thumb tip, left hand
-        {
-            Vector3 relPos;
-            Vector4 worldPos = new Vector4(pose.Position.x, pose.Position.y, pose.Position.z, 1.0f);
-            if (!newOriginExists)
-            {
-                relPos = pose.Position;
-            }
-            else
-            {
-                relPos = originTransformMatrix * worldPos;
-                relPos.z = -relPos.z;
-            }
-            relPos *= 1000.0f;
-
-            if (isRecording)
-            {
-                CoordCSV leftThumb = new CoordCSV("Thumb", RelativeTime(), relPos.ToString(), pose.Rotation.ToString());
-                forCsv.SaveRecord(leftHandrecords, leftThumb);
-            }
-
-            posThumb += "\nMain gauche\n";
-            posThumb = posThumb + "Position : " + relPos + "\n";
-            posThumb = posThumb + "Rotation : " + pose.Rotation + "\n";
-        }
-        textIndex.SetText(posIndex);
-        textThumb.SetText(posThumb);
-        textThumb.color = Color.yellow;
+        textMarker.SetText(posMarker);
+        textMarker.color = Color.yellow;
     }
 
     /// <summary>
@@ -186,8 +106,7 @@ public class Coordinates : MonoBehaviour
     public void BeginMeasures()
     {
         forCsv = new CoordCSV();
-        leftHandrecords = new List<CoordCSV>();
-        rightHandrecords = new List<CoordCSV>();
+        needleRecords = new List<CoordCSV>();
         StartButton.SetActive(false);
         EndButton.SetActive(true);
         startTime = Time.realtimeSinceStartupAsDouble;
@@ -195,12 +114,11 @@ public class Coordinates : MonoBehaviour
     }
 
     /// <summary>
-    /// Method <c>SaveMeasures</c> stops recording (false) and writes the data in one .csv file per hand.
+    /// Method <c>SaveMeasures</c> stops recording (false) and writes the data in a .csv file.
     /// </summary>
     public void SaveMeasures()
     {
-        forCsv.WriteInCsv(leftHandrecords,folderName, 1);
-        forCsv.WriteInCsv(rightHandrecords, folderName);
+        forCsv.WriteInCsv(needleRecords,folderName, 2);
         StartButton.SetActive(true);
         EndButton.SetActive(false);
         isRecording = false;
@@ -216,14 +134,13 @@ public class Coordinates : MonoBehaviour
     }
 
     /// <summary>
-    /// Writes the data in one .csv file per hand.
+    /// Writes the data in a .csv file.
     /// </summary>
     void OnApplicationQuit()
     {
         if (isRecording)
         {
-            forCsv.WriteInCsv(leftHandrecords,folderName, 1);
-            forCsv.WriteInCsv(rightHandrecords, folderName);
+            forCsv.WriteInCsv(needleRecords,folderName, 2);
         }
     }
 

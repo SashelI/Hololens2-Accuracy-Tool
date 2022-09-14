@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using CsvHelper;
-using CsvHelper.Configuration;
 using UnityEngine;
 
 #if WINDOWS_UWP
@@ -28,7 +26,7 @@ public class CoordCSV
     /// <summary>
     /// Constructor creates a <c>CoordCSV</c> with given parameters
     /// </summary>
-    /// <param name="finger">The finger ("Index" or "Thumb") corresponding to the data</param>
+    /// <param name="finger">The finger ("Index", "Thumb", or "Marker") corresponding to the data</param>
     /// <param name="timestamp">Timestamp when the data has been taken</param>
     /// <param name="pos">Position (String representation of a Vector3) of the finger</param>
     /// <param name="rot">Rotation (String representation of a Quaternion) of the finger</param>
@@ -57,20 +55,23 @@ public class CoordCSV
 
     /// <summary>
     /// Method <c>WriteInCsv</c> writes the records in a .csv file. Files are named by corresponding hand, and the dateTime of writing.
-    /// When it's the first time using the app, the user manually chooses a location to save the file. Then, the app remembers the location and saves the files there automatically.
     /// </summary>
-    /// <param name="records">List of all the saved data</param>$
-    /// <param name="folderName">Name to be given to the folder in the Future Access list (cache) </param>
-    /// <param name="hand">Which hand has the data been recorded from : 0 for right hand, 1 for left hand. </param>
+    /// <param name="records">List of all the saved data</param>
+    /// <param name="folderName">name of the folder in the Future Acces List (cache)</param>
+    /// <param name="hand">Which hand has the data been recorded from : 0 for right hand, 1 for left hand, 2 for the object marker. </param>
     public void WriteInCsv(List<CoordCSV> records, string folderName, int hand=0)
     {
         if (records.Count > 0)
         {
-            string path = "";
+            string path = ""; 
             string dateTime = System.DateTime.Now.Day + "-" + System.DateTime.Now.Month + "_" + System.DateTime.Now.Hour + "-" + System.DateTime.Now.Minute + "-" + System.DateTime.Now.Second;
             if (hand == 1)
             {
                 path += "LeftHand_" + dateTime + ".csv";
+            }
+            else if (hand == 2)
+            {
+                path += "ObjectDetection_" + dateTime + ".csv";
             }
             else
             {
@@ -78,7 +79,14 @@ public class CoordCSV
             }
 
             List<string> lines = new List<string>();
-            lines.Add("Finger,TimeStamp,Position,Rotation(Quaternion)");
+            if (hand == 2)
+            {
+                lines.Add("Part,TimeStamp,Position,Rotation(Quaternion)");
+            }
+            else
+            {
+                lines.Add("Finger,TimeStamp,Position,Rotation(Quaternion)");
+            }
             foreach (CoordCSV data in records)
             {
                 lines.Add(data.Finger +"," + data.Timestamp + "," + data.Position + "," + data.Rotation);
@@ -116,23 +124,5 @@ UnityEngine.WSA.Application.InvokeOnAppThread(async () =>
         }, false);
 #endif
         }
-    }
-}
-
-/// <summary>
-/// Class <c>CoordMap</c> maps the <c>CoordCSV</c> class to keep correct headers order in the .csv
-/// Remnants from using CsvHelper. Not used here.
-/// </summary>
-public class CoordMap : ClassMap<CoordCSV>
-{
-    /// <summary>
-    /// Basic constructor. Orders data header by index.
-    /// </summary>
-    public CoordMap()
-    {
-        Map(m => m.Finger).Index(0).Name("Finger");
-        Map(m => m.Timestamp).Index(1).Name("TimeStamp");
-        Map(m => m.Position).Index(2).Name("Position");
-        Map(m => m.Rotation).Index(3).Name("Rotation(Quaternion)");
     }
 }

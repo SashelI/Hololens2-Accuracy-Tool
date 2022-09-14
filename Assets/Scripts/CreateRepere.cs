@@ -8,7 +8,6 @@ using Microsoft.MixedReality.Toolkit.Input;
 
 /// <summary>
 /// Class <c>CreateRepere</c> allows to create a new coordinate system, to use as origin for measurements.
-/// This was made before using the QR Code method, but can still be tested in the app
 /// </summary>
 public class CreateRepere : MonoBehaviour
 {

@@ -4,11 +4,11 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Origin
-  - StartButton
   - EndButton
+  - StartButton
   - QROrigin
   - ScriptManager
+  - Marker
   layers:
   - Default
   - TransparentFX

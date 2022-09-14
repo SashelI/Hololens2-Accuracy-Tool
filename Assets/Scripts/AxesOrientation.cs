@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using QRTracking;
 using UnityEngine;
 
 /// <summary>
@@ -43,6 +44,9 @@ public class AxesOrientation : MonoBehaviour
     /// </summary>
     public void ResetQrOrigin()
     {
+        obj.transform.position = Vector3.zero;
+        obj.GetComponent<SpatialGraphCoordinateSystem>().setSideLength(0.0f);
+        obj.SetActive(false);
         changedRotation = false;
     }
 }
