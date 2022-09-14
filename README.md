@@ -7,7 +7,7 @@ A Unity application was developed to record and save the coordinates measured by
 Experiments simulating various types of gestures of the hand have been made, and the first results exploited, showing that HoloLens2’s accuracy is rather low and potentially insufficient for a medical use.
 
 • Some tests were made to see if moving object detection was accurate enough to follow a medical tool during an intervention, using VisionLib's library, but it appreared that on small objects the detection was not stable nor accurate enough to pursue.
-This project is available on the "Object Detection" Branch, but is a different Unity project from the precision tool.
+This project is available on the "Object Tracking" Branch, but is a different Unity project from the precision tool.
 
 • What I used :
 
